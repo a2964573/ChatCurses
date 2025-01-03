@@ -29,6 +29,10 @@
 
 #define POSY_LAST  LINES - 1
 
+#define STATUSLVL_NOR   1
+#define STATUSLVL_ERR   2
+#define STATUSLVL_ALERT 3
+
 typedef struct {
 	int attributes;
 	int login_state;
@@ -67,7 +71,7 @@ int utilNcursesActiveAttr(GLOBAL* _global, int attr);
 int utilNcursesDeActiveAttr(GLOBAL* _global, int attr);
 int utilNcursesClicked(GLOBAL* _global);
 int utilNcursesInputString(char* buffer, int size, int y);
-int utilNcursesCommandShow(char* descript);
+int utilNcursesCommandShow(int level, char* descript);
 ////////////////////////////////////////////////////////////////////////////////////////
 
 

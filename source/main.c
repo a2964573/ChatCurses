@@ -40,6 +40,8 @@ int process()
 			if(login_process(&_global) < 0) {
 				continue;
 			}
+
+			 _global.login_state = TRUE;
 		}
 
 		move(POSY_LAST, POSX_FIRST);

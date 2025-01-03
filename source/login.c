@@ -40,7 +40,7 @@ int login_process(GLOBAL* _global)
 
 				size = utilSpaceTrim(buffer, strlen(buffer));
 				if(size <= 0) {
-					utilNcursesCommandShow("[ERR] 잘못된 위치 클릭");
+					utilNcursesCommandShow(STATUSLVL_ERR, "잘못된 위치 클릭");
 					continue;
 				}
 
@@ -48,7 +48,7 @@ int login_process(GLOBAL* _global)
 					len = sprintf(input, "%s", &buffer[1]);
 					len = utilNcursesInputString(input, SZ_INPUT_MAX, y);
 					if(len < 0) {
-						utilNcursesCommandShow("[ERR] utilGetString is Failed");
+						utilNcursesCommandShow(STATUSLVL_ERR, "utilGetString is Failed");
 						return 0;
 					}
 
@@ -67,7 +67,7 @@ int login_process(GLOBAL* _global)
 					printw(input);
 
 					sprintf(command, "Input String [%d:%s]", len, input);
-					utilNcursesCommandShow(command);
+					utilNcursesCommandShow(STATUSLVL_NOR, command);
 				}
 				else
 				if(buffer[0] == MARK_BUTTON) {
@@ -76,7 +76,7 @@ int login_process(GLOBAL* _global)
 					}
 
 					if(login.id_len == 0 || login.pw_len == 0) {
-						utilNcursesCommandShow("아이디 또는 비밀번호를 입력하세요.");
+						utilNcursesCommandShow(STATUSLVL_ALERT, "아이디 또는 비밀번호를 입력하세요.");
 						continue;
 					}
 
@@ -90,7 +90,7 @@ int login_process(GLOBAL* _global)
 			break;
 			default:
 				sprintf(command, "Your key input is [%d:0x%x][%c]", key, key, key);
-				utilNcursesCommandShow(command);
+				utilNcursesCommandShow(STATUSLVL_NOR, command);
 			break;
 		}
 	}

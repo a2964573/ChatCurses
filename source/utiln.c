@@ -74,7 +74,7 @@ int utilNcursesInputString(char* buffer, int size, int y)
     int len = strlen(buffer);
     while(len < size - 1) {
 		sprintf(command, "utilNcursesInputString [%d:%s]", len, buffer);
-		utilNcursesCommandShow(command);
+		utilNcursesCommandShow(STATUSLVL_NOR, command);
 
         key = getch();
 
@@ -123,11 +123,24 @@ int utilNcursesInputString(char* buffer, int size, int y)
     return len;
 }
 
-int utilNcursesCommandShow(char* descript)
+int utilNcursesCommandShow(int level, char* descript)
 {
+	char lv[16] = {0,};
+	switch(level) {
+		case STATUSLVL_NOR:
+			strcpy(lv, "[NOR]");
+		break;
+		case STATUSLVL_ERR:
+			strcpy(lv, "[ERR]");
+		break;
+		case STATUSLVL_ALERT:
+			strcpy(lv, "[!!!]");
+		break;
+	}
+
     move(POSY_LAST, POSX_FIRST);
     clrtoeol();
-    printw(descript);
+    printw("%s %s", lv, descript);
     refresh();
 
 
