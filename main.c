@@ -42,7 +42,7 @@ int process()
 			}
 		}
 
-		move(LINES - 1, 0);
+		move(POSY_LAST, POSX_FIRST);
 		clrtoeol();
 		printw("Login Success!!");
 	}

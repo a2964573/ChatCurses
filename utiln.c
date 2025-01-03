@@ -111,7 +111,7 @@ int utilNcursesInputString(char* buffer, int size, int y)
             buffer[len  ] = 0x00;
         }
 
-		move(y, 3);
+		move(y, POSX_TEXT);
 		clrtoeol();
 		printw(buffer);
 		refresh();
@@ -125,7 +125,7 @@ int utilNcursesInputString(char* buffer, int size, int y)
 
 int utilNcursesCommandShow(char* descript)
 {
-    move(LINES - 1, 0);
+    move(POSY_LAST, POSX_FIRST);
     clrtoeol();
     printw(descript);
     refresh();

@@ -35,7 +35,7 @@ int login_process(GLOBAL* _global)
 
 				y = event->y;
 
-				move(y, 0);
+				move(y, POSX_FIRST);
 				winstr(stdscr, buffer);
 
 				size = utilSpaceTrim(buffer, strlen(buffer));
@@ -52,17 +52,17 @@ int login_process(GLOBAL* _global)
 						return 0;
 					}
 
-					if(y == 3) {
+					if(y == POSY_LOGIN_INPUT_ID) {
 						strcpy(login.id, input);
 						login.id_len = len;
 					}
 					else
-					if(y == 6) {
+					if(y == POSY_LOGIN_INPUT_PW) {
 						strcpy(login.pw, input);
 						login.pw_len = len;
 					}
 
-					move(y, 3);
+					move(y, POSX_TEXT);
 					clrtoeol();
 					printw(input);
 
@@ -70,7 +70,7 @@ int login_process(GLOBAL* _global)
 					utilNcursesCommandShow(command);
 				}
 				else
-				if(buffer[0] == MARK_BUTON) {
+				if(buffer[0] == MARK_BUTTON) {
 					if(strcmp("Submit", &buffer[1]) != 0) {
 						continue;
 					}
@@ -101,14 +101,14 @@ int login_process(GLOBAL* _global)
 
 int showLoginInterface()
 {
-	mvprintw(1, 2, "%cLOGIN ", MARK_TITLE);
-	mvprintw(2, 2, "%cID"    , MARK_LABEL);
-	mvprintw(3, 2, "%c"      , MARK_INPUT);
+	mvprintw(POSY_LOGIN_TITLE_LOGIN  , POSX_MARK, "%cLOGIN ", MARK_TITLE );
+	mvprintw(POSY_LOGIN_LABEL_ID     , POSX_MARK, "%cID"    , MARK_LABEL );
+	mvprintw(POSY_LOGIN_INPUT_ID     , POSX_MARK, "%c"      , MARK_INPUT );
 
-	mvprintw(5, 2, "%cPW    ", MARK_LABEL);
-	mvprintw(6, 2, "%c"      , MARK_INPUT);
+	mvprintw(POSY_LOGIN_LABEL_PW     , POSX_MARK, "%cPW    ", MARK_LABEL );
+	mvprintw(POSY_LOGIN_INPUT_PW     , POSX_MARK, "%c"      , MARK_INPUT );
 
-	mvprintw(8, 2, "%cSubmit", MARK_BUTON);
+	mvprintw(POSY_LOGIN_BUTTON_SUBMIT, POSX_MARK, "%cSubmit", MARK_BUTTON);
 
 
 	return 0;
