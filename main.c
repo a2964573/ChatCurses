@@ -35,12 +35,6 @@ int init()
 
 int process()
 {
-	MEVENT event;
-	int key;
-//	int x;
-	int y;
-
-//	int input;
 	while(TRUE) {
 		if(_global.login_state == FALSE) {
 			if(login_process(&_global) < 0) {
@@ -48,34 +42,9 @@ int process()
 			}
 		}
 
-		key = getch();
-
-		switch(key) {
-			case KEY_MOUSE:
-				if(getmouse(&event) != OK) {
-					continue;
-				}
-
-//				x = event.x;
-				y = event.y;
-
-				if(event.bstate & BUTTON1_CLICKED) {
-					char buffer[1024] = {0,};
-					move(y, 0);
-					winstr(stdscr, buffer);
-
-					int size = utilSpaceTrim(buffer, strlen(buffer));
-
-					move(LINES - 1, 0);
-					clrtoeol();
-					mvprintw(LINES - 1, 0, "Your mouse clicked line %d, string[%d:%s]", y, size, buffer);
-					refresh();
-				}
-			break;
-			default:
-				mvprintw(1, 2, "You Input Key is [%d:%c]", key, key);
-			break;
-		}
+		move(LINES - 1, 0);
+		clrtoeol();
+		printw("Login Success!!");
 	}
 
 

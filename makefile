@@ -2,10 +2,10 @@ CC = gcc
 CFLAGS = -Wall -g
 LIBRARY = -lncurses
 
-BUILDDIR = /home/tester/Projects/C/Chat/build
-APPDIR = /home/tester/Projects/C/Chat/app
+BUILDDIR = /home/tester/Projects/C/ChatCurses/build
+APPDIR = /home/tester/Projects/C/ChatCurses/app
 
-SOURCE = main.c util.c login.c
+SOURCE = main.c utiln.c utilc.c login.c
 OBJECTS = $(patsubst %.c, $(BUILDDIR)/%.o, $(SOURCE))
 PROJECT = chatting
 
