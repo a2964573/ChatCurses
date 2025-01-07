@@ -27,7 +27,6 @@ int init()
 	clear();
 
 	_global.attributes  = A_BOLD | A_UNDERLINE | A_REVERSE | A_BLINK | A_STANDOUT;
-	_global.login_state = FALSE;
 
 
 	return 0;
@@ -35,18 +34,28 @@ int init()
 
 int process()
 {
+	MEVENT  event = {0,};
+	_global.event = &event;
+
+	LOGIN   login = {0,};
+	_global.login = &login;
+
+	CLIENT  client = {0,};
+	_global.client = &client;
+
 	while(TRUE) {
-		if(_global.login_state == FALSE) {
+		if(_global.login->login_state == FALSE) {
 			if(login_process(&_global) < 0) {
 				continue;
 			}
 
-			 _global.login_state = TRUE;
+			 _global.login->login_state = TRUE;
 		}
 
-		move(POSY_LAST, POSX_FIRST);
-		clrtoeol();
-		printw("Login Success!!");
+		if(chat_process(&_global) < 0) {
+			clientClose(_global.client);
+			break;
+		}
 	}
 
 

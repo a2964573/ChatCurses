@@ -3,10 +3,15 @@
 
 int login_process(GLOBAL* _global)
 {
-	showLoginInterface();
+	if(_global == NULL || _global->event == NULL || _global->login == NULL) {
+		UTILLOG(LOGLV_ERR, __FUNCTION__, "[ERR] _global is NULL");
+		return -1;
+	}
 
-	MEVENT* event = &_global->event;
-	LOGIN   login = {0,};
+	login_showInterface();
+
+	MEVENT* event = _global->event;
+	LOGIN*  login = _global->login;
 
 	char command[SZ_COMMAND_MAX] = {0,};
 	char buffer [SZ_BUFFER_MAX ] = {0,};
@@ -16,7 +21,7 @@ int login_process(GLOBAL* _global)
 
 	int y;
 	int key;
-	while(TRUE) {
+	while(login->login_state == FALSE) {
 		memset(buffer, 0x00, sizeof(SZ_BUFFER_MAX));
 		memset(input , 0x00, sizeof(SZ_INPUT_MAX ));
 
@@ -27,7 +32,6 @@ int login_process(GLOBAL* _global)
 				if(getmouse(event) != OK) {
 					return -1;
 				}
-
 
 				if(!(event->bstate & BUTTON1_CLICKED)) {
 					continue;
@@ -46,20 +50,20 @@ int login_process(GLOBAL* _global)
 
 				if(buffer[0] == MARK_INPUT) {
 					len = sprintf(input, "%s", &buffer[1]);
-					len = utilNcursesInputString(input, SZ_INPUT_MAX, y);
+					len = utilNcursesInputString(input, SZ_INPUT_MAX, y, -1);
 					if(len < 0) {
-						utilNcursesCommandShow(STATUSLVL_ERR, "utilGetString is Failed");
+						UTILLOG(LOGLV_ERR, __FUNCTION__, "utilGetString Failed.");
 						return 0;
 					}
 
 					if(y == POSY_LOGIN_INPUT_ID) {
-						strcpy(login.id, input);
-						login.id_len = len;
+						strcpy(login->id, input);
+						login->id_len = len;
 					}
 					else
 					if(y == POSY_LOGIN_INPUT_PW) {
-						strcpy(login.pw, input);
-						login.pw_len = len;
+						strcpy(login->pw, input);
+						login->pw_len = len;
 					}
 
 					move(y, POSX_TEXT);
@@ -75,12 +79,18 @@ int login_process(GLOBAL* _global)
 						continue;
 					}
 
-					if(login.id_len == 0 || login.pw_len == 0) {
+					if(login->id_len == 0 || login->pw_len == 0) {
 						utilNcursesCommandShow(STATUSLVL_ALERT, "아이디 또는 비밀번호를 입력하세요.");
 						continue;
 					}
 
-					return 0;
+					if(login_try(_global) < 0) {
+						utilNcursesCommandShow(STATUSLVL_ALERT, "로그인에 실패하였습니다.");
+						login->login_state = FALSE;
+						continue;
+					}
+
+					login->login_state = TRUE;
 				}
 				else {
 					continue;
@@ -99,8 +109,9 @@ int login_process(GLOBAL* _global)
 	return 0;
 }
 
-int showLoginInterface()
+int login_showInterface()
 {
+	clear();
 	mvprintw(POSY_LOGIN_TITLE_LOGIN  , POSX_MARK, "%cLOGIN ", MARK_TITLE );
 	mvprintw(POSY_LOGIN_LABEL_ID     , POSX_MARK, "%cID"    , MARK_LABEL );
 	mvprintw(POSY_LOGIN_INPUT_ID     , POSX_MARK, "%c"      , MARK_INPUT );
@@ -109,6 +120,72 @@ int showLoginInterface()
 	mvprintw(POSY_LOGIN_INPUT_PW     , POSX_MARK, "%c"      , MARK_INPUT );
 
 	mvprintw(POSY_LOGIN_BUTTON_SUBMIT, POSX_MARK, "%cSubmit", MARK_BUTTON);
+
+
+	return 0;
+}
+
+int login_try(GLOBAL* _global)
+{
+	LOGIN*  login  = _global->login;
+	CLIENT* client = _global->client;
+
+	if(clientMakeHeader(client, SERVICE_CODE_LOGIN0001) < 0) {
+		return -1;
+	}
+
+	LOGIN0001_IN inbound;
+	memset(&inbound, 0x20, sizeof(LOGIN0001_IN));
+
+	memcpy(inbound.id, login->id, login->id_len);
+	memcpy(inbound.pw, login->pw, login->pw_len);
+
+	if(clientMakePacket(client, (char*)&inbound, SZ_LOGIN0001_IN) < 0) {
+		UTILLOG(LOGLV_ERR, __FUNCTION__, "clientMakePacket Failed.");
+		return -1;
+	}
+
+	if(client->sockfd == 0 && clientConnect(client, FALSE) < 0) {
+		UTILLOG(LOGLV_ERR, __FUNCTION__, "clientConnect Failed.");
+		return -1;
+	}
+
+	if(clientSocketSend(client) < 0) {
+		UTILLOG(LOGLV_ERR, __FUNCTION__, "clientSocketSend Failed.");
+		return -1;
+	}
+
+	if(clientSocketReceive(client) < 0) {
+		UTILLOG(LOGLV_ERR, __FUNCTION__, "clientSocketReceive Failed.");
+		return -1;
+	}
+
+	if(clientClose(client) < 0) {
+		utilNcursesCommandShow(STATUSLVL_ERR, "clientClose Failed");
+		UTILLOG(LOGLV_ERR, __FUNCTION__, "clientClose Failed.");
+		return -1;
+	}
+
+	LOGIN0001_OUT* outbound = (LOGIN0001_OUT*)client->recv_buffer;
+	if(outbound->result[0] == 'N') {
+		UTILLOG(LOGLV_ERR, __FUNCTION__, "Login Failed.");
+		return -1;
+	}
+
+	char id  [128] = {0,};
+	char name[128] = {0,};
+
+	memcpy(id  , outbound->id  , sizeof(outbound->id  ));
+	memcpy(name, outbound->name, sizeof(outbound->name));
+
+	utilSpaceTrim(id, sizeof(id  ));
+	utilSpaceTrim(id, sizeof(name));
+
+	strcpy(login->id  , id);
+	strcpy(login->name, name);
+
+	clientSocketSendClear(client);
+	clientSocketRecvClear(client);
 
 
 	return 0;

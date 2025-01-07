@@ -1,11 +1,21 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <ncurses.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include "payload.h"
 
 #ifndef TRUE
 #define TRUE 1
@@ -33,23 +43,44 @@
 #define STATUSLVL_ERR   2
 #define STATUSLVL_ALERT 3
 
+#define SZ_SEND_BUFFER_MAX 2048
+#define SZ_RECV_BUFFER_MAX 2048
+
+typedef struct {
+	char name[64 ];
+	char id  [64 ];
+	char pw  [512];
+	int  id_len;
+	int  pw_len;
+	int  login_state;
+} LOGIN;
+
+typedef struct {
+	char server_ip  [32 ];
+	int  server_port;
+	int  sockfd;
+	struct sockaddr_in address;
+
+	int  flags;
+
+	char send_buffer[SZ_SEND_BUFFER_MAX];
+	int  send_len;
+
+	char recv_buffer[SZ_RECV_BUFFER_MAX];
+	int  recv_len;
+} CLIENT;
+
 typedef struct {
 	int attributes;
-	int login_state;
-	MEVENT event;
+	MEVENT* event;
+	LOGIN*  login;
+	CLIENT* client;
 } GLOBAL;
 
 int init();
 int process();
 
 // login ///////////////////////////////////////////////////////////////////////////////
-typedef struct {
-	char id[64 ];
-	char pw[512];
-	int  id_len;
-	int  pw_len;
-} LOGIN;
-
 #define SZ_COMMAND_MAX          2048
 #define SZ_BUFFER_MAX           1024
 #define SZ_INPUT_MAX            1024
@@ -62,23 +93,55 @@ typedef struct {
 #define POSY_LOGIN_BUTTON_SUBMIT 8
 
 int login_process(GLOBAL* _global);
-int showLoginInterface();
+int login_showInterface();
+int login_try(GLOBAL* _global);
 ////////////////////////////////////////////////////////////////////////////////////////
 
+// chat ////////////////////////////////////////////////////////////////////////////////
+#define POSY_CHAT_TITLE_ROOMNAME 1
+#define POSY_CHAT_INPUT_MESSAGE  LINES - 3
+
+int chat_process(GLOBAL* _global);
+int chat_showInterface();
+int chat_send(CLIENT* client);
+int chat_recv(CLIENT* client);
+int chat_showMessage(CLIENT* client);
+////////////////////////////////////////////////////////////////////////////////////////
+
+// client //////////////////////////////////////////////////////////////////////////////
+int clientConnect(CLIENT* client, int isNonBlock);
+int clientSocketSend(CLIENT* client);
+int clientSocketReceive(CLIENT* client);
+int clientClose(CLIENT* client);
+int clientSocketSendClear(CLIENT* client);
+int clientSocketRecvClear(CLIENT* client);
+int clientMakeHeader(CLIENT* client, char* svc_cd);
+int clientMakePacket(CLIENT* client, char* inbound, int size);
+////////////////////////////////////////////////////////////////////////////////////////
 
 // util ncurses ////////////////////////////////////////////////////////////////////////
 int utilNcursesActiveAttr(GLOBAL* _global, int attr);
 int utilNcursesDeActiveAttr(GLOBAL* _global, int attr);
 int utilNcursesClicked(GLOBAL* _global);
-int utilNcursesInputString(char* buffer, int size, int y);
+int utilNcursesInputString(char* buffer, int size, int y, int ms);
 int utilNcursesCommandShow(int level, char* descript);
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
 // util ////////////////////////////////////////////////////////////////////////////////
+#define LOGLV_NOR 1
+#define LOGLV_DBG 2
+#define LOGLV_ERR 3
+
+#define DIR_PATH_LOG "/home/tester/Projects/C/ChatCurses/log"
+#define UTILLOG(level, func, format, ...) utilLogging(__FILE__, func, __LINE__, level, format, ##__VA_ARGS__)
+
+int utilLogging(const char* fileName, const char* funcName, const int line, int level, const char* format, ...);
 int utilSpaceTrim(char* buffer, int size);
 int utilStringBackSpace(char* buffer, int len, int pos);
 int utilStringDelete(char* buffer, int len, int pos);
+int utilGetDate(char* output);
+long utilGetTime(char* output);
 ////////////////////////////////////////////////////////////////////////////////////////
 
 #endif // _MAIN_H_

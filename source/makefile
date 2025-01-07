@@ -5,7 +5,7 @@ LIBRARY = -lncurses
 BUILDDIR = /home/tester/Projects/C/ChatCurses/build
 APPDIR = /home/tester/Projects/C/ChatCurses/app
 
-SOURCE = main.c utiln.c utilc.c login.c
+SOURCE = main.c utiln.c utilc.c login.c chat.c client.c
 OBJECTS = $(patsubst %.c, $(BUILDDIR)/%.o, $(SOURCE))
 PROJECT = chatting
 

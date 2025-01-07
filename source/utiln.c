@@ -55,11 +55,13 @@ int _isValidChar(int ch)
             (ch >= 'a' && ch <= 'z'));
 }
 
-int utilNcursesInputString(char* buffer, int size, int y)
+int utilNcursesInputString(char* buffer, int size, int y, int ms)
 {
     if(buffer == NULL || size <= 0) {
         return -1;
     }
+
+	timeout(ms);
 
     MEVENT event;
 
@@ -78,7 +80,11 @@ int utilNcursesInputString(char* buffer, int size, int y)
 
         key = getch();
 
+		if(key < 0) {
+			continue;
+		}
         // 입력을 초기화한다
+        else
         if(key == KEY_ESC) {
 			strcpy(buffer, origin);
 			len = origin_len;
@@ -118,6 +124,7 @@ int utilNcursesInputString(char* buffer, int size, int y)
     }
 
 	free(origin);
+	timeout(-1);
 
 
     return len;
@@ -138,7 +145,7 @@ int utilNcursesCommandShow(int level, char* descript)
 		break;
 	}
 
-    move(POSY_LAST, POSX_FIRST);
+    move(POSY_LAST, POSX_MARK);
     clrtoeol();
     printw("%s %s", lv, descript);
     refresh();
