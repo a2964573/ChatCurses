@@ -1,29 +1,37 @@
-CC = gcc
-CFLAGS = -Wall -g
-LIBRARY = -lncurses
+CC			= gcc
+CFLAGS		= -Wall -g
+LIBRARY		= -lncurses
 
-BUILDDIR = /home/tester/Projects/C/ChatCurses/build
-APPDIR = /home/tester/Projects/C/ChatCurses/app
+CURRENTTIME	= $(shell date +"%Y%m%d.%H%M%S%3N")
 
-SOURCE = main.c utiln.c utilc.c login.c chat.c client.c
-OBJECTS = $(patsubst %.c, $(BUILDDIR)/%.o, $(SOURCE))
-PROJECT = chatting
+CHATCURSES	= ~/Projects/C/ChatCurses
+APPDIR		= $(CHATCURSES)/app
+BUILDDIR	= $(CHATCURSES)/build
+OBJECTDIR	= $(BUILDDIR)/$(PROJECT)_d
 
-all: $(BUILDDIR)/$(PROJECT)
+PROJECT		= chatting
+SOURCE		= \
+	main.c \
+	utiln.c \
+	utilc.c \
+	login.c \
+	chat.c \
+	client.c
+OBJECTS		= $(patsubst %.c, $(OBJECTDIR)/%.o, $(SOURCE))
 
-# 각 소스 파일을 개별 오브젝트 파일로 컴파일
-$(BUILDDIR)/%.o: %.c
+LASTFILE    = $(shell ls -lrt $(BUILDDIR)/$(PROJECT).* | tail -n 1 | awk '{print$$NF}')
+
+all: $(PROJECT)
+
+$(OBJECTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# 오브젝트 파일을 링크하여 실행 파일 생성
-$(BUILDDIR)/$(PROJECT): $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o $@ $(LIBRARY)
+$(PROJECT): $(OBJECTS)
+	$(CC) $(CFLAGS) $(OBJECTS) -o $(BUILDDIR)/$(PROJECT).$(CURRENTTIME) $(LIBRARY)
 
-# 클린 타겟
 clean:
-	rm -f $(BUILDDIR)/*.o $(BUILDDIR)/$(PROJECT)
+	rm -f $(OBJECTS)
 
-# 실행 파일 복사 타겟
-upver: all
-	cp $(BUILDDIR)/$(PROJECT) $(APPDIR)/$(PROJECT)
+upver:
+	cp -p $(LASTFILE) $(APPDIR)/$(PROJECT)
 

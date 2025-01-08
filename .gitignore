@@ -1,5 +1,6 @@
 app
 build
+log
 sample
 
 **/*.exe
