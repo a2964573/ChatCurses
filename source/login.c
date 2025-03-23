@@ -1,17 +1,17 @@
 #include "main.h"
 
 
-int login_process(GLOBAL* _global)
+int login_process()
 {
-	if(_global == NULL || _global->event == NULL || _global->login == NULL) {
+	if(_global.event == NULL || _global.login == NULL) {
 		UTILLOG(LOGLV_ERR, __FUNCTION__, "[ERR] _global is NULL");
 		return -1;
 	}
 
 	login_showInterface();
 
-	MEVENT* event = _global->event;
-	LOGIN*  login = _global->login;
+	MEVENT* event = _global.event;
+	LOGIN*  login = _global.login;
 
 	char command[SZ_COMMAND_MAX] = {0,};
 	char buffer [SZ_BUFFER_MAX ] = {0,};
@@ -84,7 +84,7 @@ int login_process(GLOBAL* _global)
 						continue;
 					}
 
-					if(login_try(_global) < 0) {
+					if(login_try() < 0) {
 						utilNcursesCommandShow(STATUSLVL_ALERT, "로그인에 실패하였습니다.");
 						login->login_state = FALSE;
 						continue;
@@ -125,10 +125,10 @@ int login_showInterface()
 	return 0;
 }
 
-int login_try(GLOBAL* _global)
+int login_try()
 {
-	LOGIN*  login  = _global->login;
-	CLIENT* client = _global->client;
+	LOGIN*  login  = _global.login;
+	CLIENT* client = _global.client;
 
 	if(clientMakeHeader(client, SERVICE_CODE_LOGIN0001) < 0) {
 		return -1;

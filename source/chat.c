@@ -1,14 +1,14 @@
 #include "main.h"
 
 
-int chat_process(GLOBAL* _global)
+int chat_process()
 {
-	if(_global == NULL || _global->event == NULL || _global->login == NULL) {
+	if(_global.event == NULL || _global.login == NULL) {
 		return -1;
 	}
 
 	chat_showInterface();
-	LOGIN* login = _global->login;
+	LOGIN* login = _global.login;
 
 	if(login->login_state == FALSE) {
 		utilNcursesCommandShow(STATUSLVL_ALERT, "로그인을 해주세요.");
@@ -21,15 +21,15 @@ int chat_process(GLOBAL* _global)
 	utilNcursesCommandShow(STATUSLVL_NOR, command);
 
 	while(TRUE) {
-		if(chat_send(_global->client) < 0) {
+		if(chat_send(_global.client) < 0) {
 			return -1;
 		}
-		clientSocketSendClear(_global->client);
+		clientSocketSendClear(_global.client);
 
-		if(chat_recv(_global->client) < 0) {
+		if(chat_recv(_global.client) < 0) {
 			return -1;
 		}
-		clientSocketRecvClear(_global->client);
+		clientSocketRecvClear(_global.client);
 	}
 
 

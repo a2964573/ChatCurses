@@ -1,46 +1,38 @@
 #include "main.h"
 
 
-int utilNcursesActiveAttr(GLOBAL* _global, int attr)
+int utilNcursesActiveAttr(int attr)
 {
-    if(_global == NULL) {
-        return -1;
-    }
-
-    if(_global->attributes & attr) {
+    if(_global.attributes & attr) {
         return 0;
     }
 
     attron(attr);
-    _global->attributes = _global->attributes | attr;
+    _global.attributes = _global.attributes | attr;
 
 
     return 0;
 }
 
-int utilNcursesDeActiveAttr(GLOBAL* _global, int attr)
+int utilNcursesDeActiveAttr(int attr)
 {
-    if(_global == NULL) {
-        return -1;
-    }
-
-    if(!(_global->attributes & attr)) {
+    if(!(_global.attributes & attr)) {
         return 0;
     }
 
     attroff(attr);
-    _global->attributes &= ~attr;
+    _global.attributes &= ~attr;
 
 
     return 0;
 }
 
-int utilNcursesClicked(GLOBAL* _global)
+int utilNcursesClicked()
 {
-    utilNcursesDeActiveAttr(_global, A_BOLD | A_UNDERLINE | A_REVERSE | A_BLINK | A_STANDOUT);
-    utilNcursesActiveAttr(_global, A_BLINK);
+    utilNcursesDeActiveAttr(A_BOLD | A_UNDERLINE | A_REVERSE | A_BLINK | A_STANDOUT);
+    utilNcursesActiveAttr(A_BLINK);
     printw(CURSOR);
-    utilNcursesDeActiveAttr(_global, A_BLINK);
+    utilNcursesDeActiveAttr(A_BLINK);
     refresh();
 
 
@@ -83,28 +75,28 @@ int utilNcursesInputString(char* buffer, int size, int y, int ms)
 		if(key < 0) {
 			continue;
 		}
-        // 입력을 초기화한다
         else
         if(key == KEY_ESC) {
+			// 입력을 초기화한다
 			strcpy(buffer, origin);
 			len = origin_len;
 			break;
         }
-		// 입력을 종료한다
 		else
 		if(key == 0x0a) {
+			// 입력을 종료한다
 			break;
 		}
-        // 이전 위치의 값을 삭제한다
         else
         if(key == 0x08) {
+			// 이전 위치의 값을 삭제한다
             if(len > 0) {
                 len = utilStringBackSpace(buffer, len, len);
             }
         }
-        // 포커스 아웃으로 판단하고 종료한다
         else
         if(key == KEY_MOUSE) {
+			// 포커스 아웃으로 판단하고 종료한다
             if(getmouse(&event) != OK) {
                 continue;
             }

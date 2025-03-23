@@ -77,6 +77,8 @@ typedef struct {
 	CLIENT* client;
 } GLOBAL;
 
+extern GLOBAL _global;
+
 int init();
 int process();
 
@@ -92,16 +94,16 @@ int process();
 #define POSY_LOGIN_INPUT_PW      6
 #define POSY_LOGIN_BUTTON_SUBMIT 8
 
-int login_process(GLOBAL* _global);
+int login_process();
 int login_showInterface();
-int login_try(GLOBAL* _global);
+int login_try();
 ////////////////////////////////////////////////////////////////////////////////////////
 
 // chat ////////////////////////////////////////////////////////////////////////////////
 #define POSY_CHAT_TITLE_ROOMNAME 1
 #define POSY_CHAT_INPUT_MESSAGE  LINES - 3
 
-int chat_process(GLOBAL* _global);
+int chat_process();
 int chat_showInterface();
 int chat_send(CLIENT* client);
 int chat_recv(CLIENT* client);
@@ -120,13 +122,12 @@ int clientMakePacket(CLIENT* client, char* inbound, int size);
 ////////////////////////////////////////////////////////////////////////////////////////
 
 // util ncurses ////////////////////////////////////////////////////////////////////////
-int utilNcursesActiveAttr(GLOBAL* _global, int attr);
-int utilNcursesDeActiveAttr(GLOBAL* _global, int attr);
-int utilNcursesClicked(GLOBAL* _global);
+int utilNcursesActiveAttr(int attr);
+int utilNcursesDeActiveAttr(int attr);
+int utilNcursesClicked();
 int utilNcursesInputString(char* buffer, int size, int y, int ms);
 int utilNcursesCommandShow(int level, char* descript);
 ////////////////////////////////////////////////////////////////////////////////////////
-
 
 // util ////////////////////////////////////////////////////////////////////////////////
 #define LOGLV_NOR 1

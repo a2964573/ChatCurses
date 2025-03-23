@@ -26,7 +26,7 @@ int init()
 	mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
 	clear();
 
-	_global.attributes  = A_BOLD | A_UNDERLINE | A_REVERSE | A_BLINK | A_STANDOUT;
+	_global.attributes = A_BOLD | A_UNDERLINE | A_REVERSE | A_BLINK | A_STANDOUT;
 
 
 	return 0;
@@ -45,14 +45,14 @@ int process()
 
 	while(TRUE) {
 		if(_global.login->login_state == FALSE) {
-			if(login_process(&_global) < 0) {
+			if(login_process() < 0) {
 				continue;
 			}
 
 			 _global.login->login_state = TRUE;
 		}
 
-		if(chat_process(&_global) < 0) {
+		if(chat_process() < 0) {
 			clientClose(_global.client);
 			break;
 		}
