@@ -2,6 +2,7 @@ app
 build
 log
 sample
+_sample
 
 **/*.exe
 **/*.txt
