@@ -166,22 +166,22 @@ int login_try()
 		return -1;
 	}
 
-	LOGIN0001_OUT* outbound = (LOGIN0001_OUT*)client->recv_buffer;
+	LOGIN0001_OUT* outbound = (LOGIN0001_OUT*)&client->recv_buffer[SZ_HEADER];
 	if(outbound->result[0] == 'N') {
 		UTILLOG(LOGLV_ERR, __FUNCTION__, "Login Failed.");
 		return -1;
 	}
 
-	char id  [128] = {0,};
+	char id  [64 ] = {0,};
 	char name[128] = {0,};
 
 	memcpy(id  , outbound->id  , sizeof(outbound->id  ));
 	memcpy(name, outbound->name, sizeof(outbound->name));
 
-	utilSpaceTrim(id, sizeof(id  ));
-	utilSpaceTrim(id, sizeof(name));
+	utilSpaceTrim(id  , sizeof(outbound->id  ));
+	utilSpaceTrim(name, sizeof(outbound->name));
 
-	strcpy(login->id  , id);
+	strcpy(login->id  , id  );
 	strcpy(login->name, name);
 
 	clientSocketSendClear(client);

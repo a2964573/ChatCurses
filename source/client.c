@@ -13,13 +13,19 @@ int clientConnect(CLIENT* client, int isNonBlock)
 	client->sockfd = socket(AF_INET, SOCK_STREAM, 0);
     client->flags = fcntl(client->sockfd, F_GETFL, 0);
 
+	client->isNonBlock = isNonBlock;
+
 	if(isNonBlock == TRUE) {
 		client->flags |= O_NONBLOCK;
+		UTILLOG(LOGLV_DBG, __FUNCTION__, "Set NonBlock");
 	}
 	else {
 		client->flags &= ~O_NONBLOCK;
+		UTILLOG(LOGLV_DBG, __FUNCTION__, "Set Block");
 	}
 	fcntl(client->sockfd, F_SETFL, client->flags);
+	UTILLOG(LOGLV_DBG, __FUNCTION__, "client->flags[0x%04x][0x%04x:0x%04x][%d]"
+		, fcntl(client->sockfd, F_GETFL, 0), client->flags, O_NONBLOCK, client->flags & O_NONBLOCK);
 
     client->address.sin_family = AF_INET;
     client->address.sin_port   = htons(client->server_port);
@@ -33,14 +39,24 @@ int clientConnect(CLIENT* client, int isNonBlock)
 
 	int result = connect(client->sockfd, (struct sockaddr*)&client->address, sizeof(client->address));
     if(result < 0) {
-		if (errno == EINPROGRESS) {
-			return 0;
+		if(errno == EINPROGRESS) {
+			int so_error;
+			socklen_t len = sizeof(so_error);
+			if(getsockopt(client->sockfd, SOL_SOCKET, SO_ERROR, &so_error, &len) == 0 && so_error == 0) {
+				UTILLOG(LOGLV_DBG, __FUNCTION__, "Connect Success.[0x%04x]", client->flags);
+			}
+			else {
+				UTILLOG(LOGLV_ERR, __FUNCTION__, "Connect Failed.[%d]", result);
+			}
 		}
 		else {
+			UTILLOG(LOGLV_ERR, __FUNCTION__, "Connect Failed.[%d]", result);
 			return -1;
 		}
     }
-	UTILLOG(LOGLV_DBG, __FUNCTION__, "Connect Success.");
+	else {
+		UTILLOG(LOGLV_DBG, __FUNCTION__, "Connect Success.[0x%04x]", client->flags);
+	}
 
 
     return 0;
@@ -52,12 +68,21 @@ int clientSocketSend(CLIENT* client)
 		UTILLOG(LOGLV_ERR, __FUNCTION__, "client is NULL");
 		return -1;
 	}
-
-	UTILLOG(LOGLV_DBG, __FUNCTION__, "send[%d:%.*s]", client->send_len, client->send_len, client->send_buffer);
+/*
+	if(client->isNonBlock == TRUE) {
+		UTILLOG(LOGLV_DBG, __FUNCTION__, "[SEND]Set NonBlock");
+		client->flags = fcntl(client->sockfd, F_GETFL, 0);
+		client->flags |= O_NONBLOCK;
+		fcntl(client->sockfd, F_SETFL, client->flags);
+	}
+*/
+//	UTILLOG(LOGLV_DBG, __FUNCTION__, "Try Sending..[Flag:0x%04x][0x%04x][NB:0x%04x]"
+//		, fcntl(client->sockfd, F_GETFL, 0), client->flags, O_NONBLOCK);
+//	UTILLOG(LOGLV_DBG, __FUNCTION__, "send[%d:%.*s]", client->send_len, client->send_len, client->send_buffer);
 
     int result = send(client->sockfd, client->send_buffer, client->send_len, 0);
 	if(result < 0) {
-		if(client->flags & O_NONBLOCK) {
+		if(fcntl(client->sockfd, F_GETFL, 0) & O_NONBLOCK) {
 			if (errno == EINPROGRESS) {
 				return 0;
 			}
@@ -80,13 +105,25 @@ int clientSocketReceive(CLIENT* client)
 		UTILLOG(LOGLV_ERR, __FUNCTION__, "client is NULL");
 		return -1;
 	}
-
-	UTILLOG(LOGLV_DBG, __FUNCTION__, "Try Receive..");
+/*
+//	UTILLOG(LOGLV_DBG, __FUNCTION__, "[RECV]client isNonBlock[%d]", client->isNonBlock);
+	if(client->isNonBlock == TRUE) {
+//		UTILLOG(LOGLV_DBG, __FUNCTION__, "[RECV]Set NonBlock");
+		client->flags = fcntl(client->sockfd, F_GETFL, 0);
+		client->flags |= O_NONBLOCK;
+		fcntl(client->sockfd, F_SETFL, client->flags);
+	}
+*/
+//	UTILLOG(LOGLV_DBG, __FUNCTION__, "Try Receive..[Flag:0x%04x][0x%04x][NB:0x%04x]"
+//		, fcntl(client->sockfd, F_GETFL, 0), client->flags, O_NONBLOCK);
 
     int result = recv(client->sockfd, client->recv_buffer, SZ_RECV_BUFFER_MAX, 0);
 	if(result < 0) {
-		if(client->flags & O_NONBLOCK) {
-			if (errno == EINPROGRESS) {
+		if(fcntl(client->sockfd, F_GETFL, 0) & O_NONBLOCK) {
+//			UTILLOG(LOGLV_DBG, __FUNCTION__, "result [%d][%d]", fcntl(client->sockfd, F_GETFL, 0) & O_NONBLOCK, result);
+//			UTILLOG(LOGLV_DBG, __FUNCTION__, "errno  [%d]", errno);
+
+			if(errno == EAGAIN || errno == EWOULDBLOCK) {
 				return 0;
 			}
 			else {
@@ -113,9 +150,15 @@ int clientClose(CLIENT* client)
 	}
 
 	UTILLOG(LOGLV_DBG, __FUNCTION__, "close.. [%d]", client->sockfd);
+	if(client->sockfd >= 0) {
+		if(close(client->sockfd) < 0) {
+			UTILLOG(LOGLV_ERR, __FUNCTION__, "close failed");
+		}
 
+		client->sockfd = -1;
+	}
 
-	return close(client->sockfd);
+	return 0;
 }
 
 int clientSocketSendClear(CLIENT* client)

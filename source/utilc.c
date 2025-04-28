@@ -13,9 +13,9 @@ int utilLogging(const char* file_name, const char* func_name, const int line, in
 	utilGetDate(date);
 	utilGetTime(time);
 
-    length = sprintf(buffer, "%s|%.2s:%.2s:%.2s.%.6s|%-16s|%-20s|%-4d|"
+    length = sprintf(buffer, "%s|%.2s:%.2s:%.2s.%.6s|%-8d|%-16s|%-20s|%-4d|"
         , date     , &time[0] , &time[2], &time[4], &time[6]
-		, file_name, func_name, line
+		, getpid(), file_name, func_name, line
 	);
 
     switch(level) {

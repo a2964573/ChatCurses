@@ -43,8 +43,8 @@
 #define STATUSLVL_ERR   2
 #define STATUSLVL_ALERT 3
 
-#define SZ_SEND_BUFFER_MAX 2048
-#define SZ_RECV_BUFFER_MAX 2048
+#define SZ_SEND_BUFFER_MAX 4096
+#define SZ_RECV_BUFFER_MAX 4096
 
 typedef struct {
 	char name[64 ];
@@ -62,6 +62,7 @@ typedef struct {
 	struct sockaddr_in address;
 
 	int  flags;
+	int  isNonBlock;
 
 	char send_buffer[SZ_SEND_BUFFER_MAX];
 	int  send_len;
@@ -105,9 +106,9 @@ int login_try();
 
 int chat_process();
 int chat_showInterface();
-int chat_send(CLIENT* client);
-int chat_recv(CLIENT* client);
-int chat_showMessage(CLIENT* client);
+int chat_send();
+int chat_recv();
+int chat_showMessage(CLIENT* client, char* name, char* message, int msg_len);
 ////////////////////////////////////////////////////////////////////////////////////////
 
 // client //////////////////////////////////////////////////////////////////////////////

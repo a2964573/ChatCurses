@@ -73,7 +73,7 @@ int utilNcursesInputString(char* buffer, int size, int y, int ms)
         key = getch();
 
 		if(key < 0) {
-			continue;
+			break;
 		}
         else
         if(key == KEY_ESC) {
@@ -100,6 +100,11 @@ int utilNcursesInputString(char* buffer, int size, int y, int ms)
             if(getmouse(&event) != OK) {
                 continue;
             }
+
+			// 동일한 y라면 포커스 아웃이 아니다
+			if(event.y == y) {
+				continue;
+			}
 
             break;
         }
